@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>Sing-box 配置转换器（本地转换）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1em;
+      max-width: 800px;
+      margin: auto;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      margin-bottom: 1em;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #f4f4f4;
+      padding: 1em;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>📦 Sing-box 配置转换工具</h1>
+  <p>请访问订阅链接，复制其输出 JSON 内容粘贴到下方，然后点击“解析配置”。</p>
+  <textarea id="jsonInput" placeholder="粘贴订阅链接返回的 JSON 内容..."></textarea>
+  <div>
+    <button onclick="parseConfig()">解析配置</button>
+    <button onclick="downloadConfig()">导出配置</button>
+  </div>
+  <p id="status"></p>
+  <pre id="output"></pre>
+
+  <script>
+    let currentConfig = null;
+
+    function parseConfig() {
+      const raw = document.getElementById('jsonInput').value.trim();
+      const output = document.getElementById('output');
+      const status = document.getElementById('status');
+      output.textContent = '';
+      status.textContent = '';
+      status.className = '';
+      currentConfig = null;
+
+      if (!raw) {
+        status.textContent = '请输入 JSON 内容';
+        status.className = 'error';
+        return;
+      }
+
+      try {
+        const config = JSON.parse(raw);
+        currentConfig = config;
+        output.textContent = JSON.stringify(config, null, 2);
+        status.textContent = '✅ 配置解析成功';
+      } catch (e) {
+        status.textContent = '❌ JSON 解析失败：' + e.message;
+        status.className = 'error';
+      }
+    }
+
+    function downloadConfig() {
+      if (!currentConfig) {
+        alert('请先解析配置');
+        return;
+      }
+      const blob = new Blob([JSON.stringify(currentConfig, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'singbox-config.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
